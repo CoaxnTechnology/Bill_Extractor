@@ -3,11 +3,28 @@ import { useNavigate } from "react-router-dom"
 import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { uploadMultipleBills } from "@/api/bills"
+import { getBills, uploadMultipleBills } from "@/api/bills"
 import { toast } from "sonner"
-import type { UploadResult } from "@/types"
+import type { Bill, UploadResult } from "@/types"
 
 const ACCEPTED_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+
+function nameFromFilename(name: string): string {
+  return name
+    .replace(/\.\w+$/, "")
+    .replace(/[_-]/g, " ")
+    .trim()
+    .toLowerCase()
+}
+
+function isDuplicate(file: File, existingBills: Bill[]): boolean {
+  const slug = nameFromFilename(file.name)
+  return existingBills.some((b) => {
+    if (!b.customer_name) return false
+    const cust = b.customer_name.toLowerCase().replace(/\n.*/, "").trim()
+    return cust === slug || cust.includes(slug) || slug.includes(cust)
+  })
+}
 
 export default function UploadCard() {
   const navigate = useNavigate()
@@ -22,14 +39,23 @@ export default function UploadCard() {
     setResults(null)
   }, [])
 
-  const addFiles = useCallback((incoming: FileList | File[]) => {
+  const addFiles = useCallback(async (incoming: FileList | File[]) => {
+    let existing: Bill[] = []
+    try {
+      existing = await getBills()
+    } catch { /* ignore */ }
+
     const valid: File[] = []
     for (const f of incoming) {
-      if (ACCEPTED_TYPES.includes(f.type)) {
-        valid.push(f)
-      } else {
+      if (!ACCEPTED_TYPES.includes(f.type)) {
         toast.error(`"${f.name}" has an unsupported file type.`)
+        continue
       }
+      if (isDuplicate(f, existing)) {
+        toast.warning(`"${f.name}" appears to be a duplicate — skipped.`)
+        continue
+      }
+      valid.push(f)
     }
     setFiles((prev) => [...prev, ...valid])
     setResults(null)
@@ -65,6 +91,7 @@ export default function UploadCard() {
     try {
       const res = await uploadMultipleBills(files)
       setResults(res.results)
+      setFiles((prev) => prev.filter((_, i) => res.results[i]?.status === "success"))
       if (res.failed === 0) {
         toast.success(`${res.success} bill(s) uploaded successfully!`)
         setTimeout(() => navigate("/bills"), 1500)
@@ -143,7 +170,9 @@ export default function UploadCard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{f.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {(f.size / 1024 / 1024).toFixed(2)} MB
+                          {f.size < 1024 * 1024
+                            ? `${(f.size / 1024).toFixed(1)} KB`
+                            : `${(f.size / 1024 / 1024).toFixed(2)} MB`}
                         </p>
                       </div>
                       {r ? (
@@ -153,7 +182,9 @@ export default function UploadCard() {
                           <div className="group relative shrink-0">
                             <AlertCircle className="h-5 w-5 text-red-500" />
                             <span className="absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-red-500 px-2 py-1 text-xs text-white group-hover:block">
-                              {r.error}
+                              {r.error?.includes("already exists")
+                                ? "Duplicate invoice - already in system"
+                                : r.error}
                             </span>
                           </div>
                         )
@@ -194,6 +225,11 @@ export default function UploadCard() {
                     {results.filter((r) => r.status === "success").length} succeeded,{" "}
                     {results.filter((r) => r.status === "failed").length} failed
                   </p>
+                  {results.some((r) => r.error?.includes("already exists")) && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Some invoices already exist in the system — duplicates were skipped.
+                    </p>
+                  )}
                   {results.every((r) => r.status === "success") && (
                     <p className="text-xs text-muted-foreground mt-1">Redirecting to bills...</p>
                   )}
