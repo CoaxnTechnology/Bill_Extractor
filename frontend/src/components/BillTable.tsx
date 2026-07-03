@@ -67,6 +67,7 @@ export default function BillTable({ bills, loading, onView, onDownload, onDelete
   const filteredBills = useMemo(() => {
     return bills.filter((b) => {
       if (!dateFrom && !dateTo) return true
+      if (!b.bill_date) return false
       const billDate = new Date(b.bill_date)
       if (dateFrom && billDate < new Date(dateFrom)) return false
       if (dateTo) {
@@ -123,6 +124,10 @@ export default function BillTable({ bills, loading, onView, onDownload, onDelete
             <ArrowUpDown className="h-3 w-3" />
           </button>
         ),
+        cell: ({ getValue }) => {
+          const val = getValue()
+          return val ? val.slice(0, 10) : val
+        },
       }),
       columnHelper.display({
         id: "actions",
@@ -132,7 +137,7 @@ export default function BillTable({ bills, loading, onView, onDownload, onDelete
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onView(row.original)}
+              onClick={() => setDetailBill(row.original)}
               aria-label={`View ${row.original.invoice_number}`}
             >
               <Eye className="h-4 w-4" />

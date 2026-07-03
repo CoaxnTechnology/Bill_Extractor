@@ -300,3 +300,12 @@ AttributeError: type object 'BillService' has no attribute 'get_bill'
 2026-07-02 19:04:33,655 | INFO | bill-extractor | Deleted PDF: app/storage/uploads/91d2da5d-72bd-4451-9055-2d9589e6b61b.pdf
 2026-07-02 19:04:33,655 | INFO | bill-extractor | Deleting bill: 001342138725
 2026-07-02 19:04:33,666 | INFO | bill-extractor | Bill deleted successfully
+2026-07-03 11:18:45,579 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 11:18:46,192 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 11:20:37,270 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 11:20:37,864 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 11:44:57,463 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 11:44:58,059 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 15:03:23,687 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 15:03:32,571 | INFO | bill-extractor | Bill Extractor API started
+2026-07-03 15:03:33,573 | INFO | bill-extractor | Bill Extractor API started

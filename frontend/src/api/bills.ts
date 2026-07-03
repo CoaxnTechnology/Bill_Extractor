@@ -1,86 +1,54 @@
-import type { Bill } from "@/types"
+import axios from "axios"
+import type { Bill, BillListResponse, MultiUploadResponse } from "@/types"
 
-const MOCK_BILLS: Bill[] = [
-  {
-    id: "1",
-    customer_name: "John Doe",
-    invoice_number: "INV-1001",
-    bill_date: "2026-06-16",
-    created_at: "2026-06-17",
-  },
-  {
-    id: "2",
-    customer_name: "Alice Smith",
-    invoice_number: "INV-1002",
-    bill_date: "2026-06-20",
-    created_at: "2026-06-21",
-  },
-  {
-    id: "3",
-    customer_name: "Bob Johnson",
-    invoice_number: "INV-1003",
-    bill_date: "2026-06-22",
-    created_at: "2026-06-23",
-  },
-  {
-    id: "4",
-    customer_name: "Jane Wilson",
-    invoice_number: "INV-1004",
-    bill_date: "2026-06-25",
-    created_at: "2026-06-26",
-  },
-  {
-    id: "5",
-    customer_name: "Charlie Brown",
-    invoice_number: "INV-1005",
-    bill_date: "2026-06-28",
-    created_at: "2026-06-29",
-  },
-]
+const http = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+})
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+http.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const message = err.response?.data?.detail || err.message || "Something went wrong"
+    return Promise.reject(new Error(message))
+  },
+)
 
 export async function getBills(): Promise<Bill[]> {
-  await delay(500)
-  return [...MOCK_BILLS]
+  const { data } = await http.get<BillListResponse>("/bills", {
+    params: { page: 1, page_size: 100 },
+  })
+  return data.items
 }
 
-export async function uploadBill(_file: File): Promise<Bill> {
-  await delay(1500)
-  const newBill: Bill = {
-    id: String(Date.now()),
-    customer_name: "New Customer",
-    invoice_number: `INV-${Math.floor(Math.random() * 9000 + 1000)}`,
-    bill_date: new Date().toISOString().split("T")[0] ?? "",
-    created_at: new Date().toISOString().split("T")[0] ?? "",
-  }
-  return newBill
+export async function uploadBill(file: File): Promise<Bill> {
+  const form = new FormData()
+  form.append("file", file)
+  const { data } = await http.post<Bill>("/upload", form)
+  return data
+}
+
+export async function uploadMultipleBills(files: File[]): Promise<MultiUploadResponse> {
+  const form = new FormData()
+  files.forEach((f) => form.append("files", f))
+  const { data } = await http.post<MultiUploadResponse>("/upload/multiple", form)
+  return data
 }
 
 export async function deleteBill(id: string): Promise<void> {
-  await delay(300)
-  const index = MOCK_BILLS.findIndex((b) => b.id === id)
-  if (index !== -1) {
-    MOCK_BILLS.splice(index, 1)
-  }
+  await http.delete(`/bills/${id}`)
 }
 
 export async function exportCSV(): Promise<void> {
-  await delay(500)
-  const csv = [
-    "Customer Name,Invoice Number,Bill Date,Uploaded Date",
-    ...MOCK_BILLS.map(
-      (b) => `${b.customer_name},${b.invoice_number},${b.bill_date},${b.created_at}`
-    ),
-  ].join("\n")
-
-  const blob = new Blob([csv], { type: "text/csv" })
-  const url = URL.createObjectURL(blob)
+  const { data, headers } = await http.get("/export/csv", {
+    responseType: "blob",
+  })
+  const disposition = headers["content-disposition"] ?? ""
+  const match = disposition.match(/filename=(.+)/)
+  const filename = match?.[1] ?? "bills.csv"
+  const url = URL.createObjectURL(data)
   const a = document.createElement("a")
   a.href = url
-  a.download = "bills.csv"
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
 }

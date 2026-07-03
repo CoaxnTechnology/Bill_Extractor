@@ -13,14 +13,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getBills().then((data) => {
-      setBills(data)
-      setLoading(false)
-    })
+    getBills()
+      .then((data) => {
+        setBills(data)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
-  const today = new Date().toISOString().split("T")[0]
-  const uploadedToday = bills.filter((b) => b.created_at === today).length
+  const today = new Date().toISOString().split("T").shift() ?? ""
+  const uploadedToday = bills.filter((b) => b.created_at.startsWith(today)).length
   const recentUploads = [...bills]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)

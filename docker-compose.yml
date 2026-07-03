@@ -1,28 +1,49 @@
 services:
   postgres:
     image: postgres:16
-
     container_name: bill-postgres
-
     restart: unless-stopped
-
     environment:
       POSTGRES_USER: bills_user
       POSTGRES_PASSWORD: bills_pass
       POSTGRES_DB: bills_db
-
     ports:
       - "5433:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bills_user -d bills_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ./backend
+    container_name: bill-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://bills_user:bills_pass@postgres:5432/bills_db
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - bill_uploads:/app/app/storage/uploads
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: bill-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
+  bill_uploads:

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from typing import List
 from fastapi import (
     APIRouter,
     Depends,
@@ -27,3 +27,34 @@ def upload(
     db: Session = Depends(get_db),
 ):
     return save_upload(db, file)
+
+@router.post("/upload/multiple")
+def upload_multiple(
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+):
+    results = []
+
+    for file in files:
+        try:
+            bill = save_upload(db, file)
+
+            results.append({
+                "filename": file.filename,
+                "status": "success",
+                "bill": bill,
+            })
+
+        except HTTPException as e:
+            results.append({
+                "filename": file.filename,
+                "status": "failed",
+                "error": e.detail,
+            })
+
+    return {
+        "total": len(files),
+        "success": sum(r["status"] == "success" for r in results),
+        "failed": sum(r["status"] == "failed" for r in results),
+        "results": results,
+    }

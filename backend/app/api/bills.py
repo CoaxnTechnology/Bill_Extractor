@@ -22,17 +22,6 @@ router = APIRouter(
     response_model=BillListResponse,
 )
 def get_bills(
-    db: Session = Depends(get_db),
-):
-
-    return BillService.get_all_bills(db)
-
-
-@router.get(
-    "",
-    response_model=BillListResponse,
-)
-def get_bills(
     search: str | None = None,
     start_date: date | None = Query(None),
     end_date: date | None = Query(None),

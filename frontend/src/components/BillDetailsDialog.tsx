@@ -46,7 +46,7 @@ export default function BillDetailsDialog({ bill, open, onOpenChange }: BillDeta
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Uploaded Date</p>
-              <p className="text-sm">{bill.created_at}</p>
+              <p className="text-sm">{bill.created_at?.slice(0, 10)}</p>
             </div>
           </div>
         </div>
