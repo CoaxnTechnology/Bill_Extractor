@@ -13,8 +13,7 @@ services:
           property: connectionString
 
 databases:
-  - type: postgres
-    name: bill-extracter-db
+  - name: bill-extracter-db
     plan: starter
     databaseName: bills_db
     user: bills_user
