@@ -145,7 +145,7 @@ export default function UploadCard() {
               </div>
               <p className="text-lg font-medium">Drag & drop or click to upload</p>
               <p className="text-sm text-muted-foreground mt-1">
-                PDF, PNG, or JPG (max. 20MB each)
+                PDF (max. 20MB each)
               </p>
             </>
           ) : (
