@@ -2,7 +2,7 @@ services:
   - type: web
     name: bill-extracter-backend
     runtime: image
-    repo: https://github.com/YOUR_USER/YOUR_REPO
+    repo: https://github.com/CoaxnTechnology/Bill_Extractor.git
     plan: starter
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
