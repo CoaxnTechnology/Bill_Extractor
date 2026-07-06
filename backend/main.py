@@ -12,17 +12,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://localhost:8001",
-    "https://bill-extracter-theta.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
