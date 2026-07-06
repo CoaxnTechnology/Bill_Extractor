@@ -7,7 +7,8 @@ import { getBills, uploadMultipleBills } from "@/api/bills"
 import { toast } from "sonner"
 import type { Bill, UploadResult } from "@/types"
 
-const ACCEPTED_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+const ACCEPTED_TYPES = ["application/pdf"]
+const ALLOWED_EXTENSIONS = [".pdf"]
 
 function nameFromFilename(name: string): string {
   return name
@@ -47,7 +48,10 @@ export default function UploadCard() {
 
     const valid: File[] = []
     for (const f of incoming) {
-      if (!ACCEPTED_TYPES.includes(f.type)) {
+      const ext = "." + f.name.split(".").pop()?.toLowerCase()
+      const validMime = ACCEPTED_TYPES.includes(f.type)
+      const validExt = ALLOWED_EXTENSIONS.includes(ext)
+      if (!validMime && !validExt) {
         toast.error(`"${f.name}" has an unsupported file type.`)
         continue
       }
@@ -132,7 +136,7 @@ export default function UploadCard() {
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
+            accept=".pdf"
             multiple
             className="hidden"
             onChange={handleChange}

@@ -19,7 +19,7 @@ def validate_file(file: UploadFile):
             detail="Only PDF files are allowed.",
         )
 
-    if file.content_type not in ALLOWED_MIME_TYPES:
+    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES and file.content_type not in {"application/octet-stream"}:
         raise HTTPException(
             status_code=400,
             detail="Invalid PDF content type.",
