@@ -53,31 +53,28 @@ interface BillTableProps {
   onView: (bill: Bill) => void
   onDownload: (bill: Bill) => void
   onDelete: (id: string) => void
+  dateFrom: string
+  dateTo: string
+  onFromChange: (value: string) => void
+  onToChange: (value: string) => void
 }
 
-export default function BillTable({ bills, loading, onView, onDownload, onDelete }: BillTableProps) {
+export default function BillTable({
+  bills,
+  loading,
+  onView,
+  onDownload,
+  onDelete,
+  dateFrom,
+  dateTo,
+  onFromChange,
+  onToChange,
+}: BillTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState("")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [detailBill, setDetailBill] = useState<Bill | null>(null)
-
-  const filteredBills = useMemo(() => {
-    return bills.filter((b) => {
-      if (!dateFrom && !dateTo) return true
-      if (!b.bill_date) return false
-      const billDate = new Date(b.bill_date)
-      if (dateFrom && billDate < new Date(dateFrom)) return false
-      if (dateTo) {
-        const end = new Date(dateTo)
-        end.setHours(23, 59, 59, 999)
-        if (billDate > end) return false
-      }
-      return true
-    })
-  }, [bills, dateFrom, dateTo])
 
   const columns = useMemo(
     () => [
@@ -191,7 +188,7 @@ export default function BillTable({ bills, loading, onView, onDownload, onDelete
   )
 
   const table = useReactTable({
-    data: filteredBills,
+    data: bills,
     columns,
     state: { sorting, columnFilters, globalFilter },
     onSortingChange: setSorting,
@@ -220,9 +217,9 @@ export default function BillTable({ bills, loading, onView, onDownload, onDelete
         <DateFilter
           from={dateFrom}
           to={dateTo}
-          onFromChange={setDateFrom}
-          onToChange={setDateTo}
-          onReset={() => { setDateFrom(""); setDateTo("") }}
+          onFromChange={onFromChange}
+          onToChange={onToChange}
+          onReset={() => { onFromChange(""); onToChange("") }}
         />
       </div>
 

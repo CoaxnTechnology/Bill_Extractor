@@ -13,10 +13,11 @@ http.interceptors.response.use(
   },
 )
 
-export async function getBills(): Promise<Bill[]> {
-  const { data } = await http.get<BillListResponse>("/bills", {
-    params: { page: 1, page_size: 100 },
-  })
+export async function getBills(start_date?: string, end_date?: string): Promise<Bill[]> {
+  const params: Record<string, string | number> = { page: 1, page_size: 100 }
+  if (start_date) params.start_date = start_date
+  if (end_date) params.end_date = end_date
+  const { data } = await http.get<BillListResponse>("/bills", { params })
   return data.items
 }
 

@@ -9,11 +9,13 @@ import type { Bill } from "@/types"
 export default function Bills() {
   const [bills, setBills] = useState<Bill[]>([])
   const [loading, setLoading] = useState(true)
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
 
-  const fetchBills = useCallback(async () => {
+  const fetchBills = useCallback(async (start_date?: string, end_date?: string) => {
     setLoading(true)
     try {
-      const data = await getBills()
+      const data = await getBills(start_date, end_date)
       setBills(data)
     } catch {
       toast.error("Failed to load bills.")
@@ -23,8 +25,8 @@ export default function Bills() {
   }, [])
 
   useEffect(() => {
-    fetchBills()
-  }, [fetchBills])
+    fetchBills(dateFrom || undefined, dateTo || undefined)
+  }, [fetchBills, dateFrom, dateTo])
 
   const handleView = useCallback((bill: Bill) => {
     toast.info(`Viewing ${bill.invoice_number}`, {
@@ -67,6 +69,10 @@ export default function Bills() {
         onView={handleView}
         onDownload={handleDownload}
         onDelete={handleDelete}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onFromChange={setDateFrom}
+        onToChange={setDateTo}
       />
     </div>
   )
