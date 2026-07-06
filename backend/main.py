@@ -17,7 +17,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:8000",
     "http://localhost:8001",
-    "https://bill-extracter-frontend.vercel.app",
+    "https://bill-extracter-theta.vercel.app",
 ]
 
 app.add_middleware(
