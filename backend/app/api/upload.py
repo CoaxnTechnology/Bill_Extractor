@@ -33,6 +33,9 @@ def upload_multiple(
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
+    logger.info(f"Upload multiple: {len(files)} file(s) received")
+    for f in files:
+        logger.info(f"  - {f.filename} | type: {f.content_type} | size: unknown")
     results = []
 
     for file in files:

@@ -51,6 +51,7 @@ export default function UploadCard() {
       const ext = "." + f.name.split(".").pop()?.toLowerCase()
       const validMime = ACCEPTED_TYPES.includes(f.type)
       const validExt = ALLOWED_EXTENSIONS.includes(ext)
+      console.log("[Upload] File:", f.name, "type:", f.type, "ext:", ext, "size:", f.size, "validMime:", validMime, "validExt:", validExt)
       if (!validMime && !validExt) {
         toast.error(`"${f.name}" has an unsupported file type.`)
         continue
@@ -60,6 +61,9 @@ export default function UploadCard() {
         continue
       }
       valid.push(f)
+    }
+    if (valid.length === 0) {
+      console.warn("[Upload] No valid files to add")
     }
     setFiles((prev) => [...prev, ...valid])
     setResults(null)
