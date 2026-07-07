@@ -7,7 +7,8 @@ if [ $# -lt 1 ]; then
 fi
 
 DOMAIN="$1"
-REPO_DIR="/opt/bill-extracter"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "=== Setting up SSL for $DOMAIN ==="
 
