@@ -42,21 +42,17 @@ export default function UploadCard() {
 
   const addFiles = useCallback(async (incoming: FileList | File[]) => {
     try {
-      console.warn("[Upload] addFiles called, incoming type:", typeof incoming, "length:", incoming?.length)
+      const files = Array.from(incoming)
       let existing: Bill[] = []
       try {
         existing = await getBills()
-      } catch (e) {
-        console.warn("[Upload] getBills failed:", e)
-      }
+      } catch { /* ignore */ }
 
       const valid: File[] = []
-      console.warn("[Upload] incoming length:", incoming?.length)
-      for (const f of incoming) {
+      for (const f of files) {
         const ext = "." + f.name.split(".").pop()?.toLowerCase()
         const validMime = ACCEPTED_TYPES.includes(f.type)
         const validExt = ALLOWED_EXTENSIONS.includes(ext)
-        console.warn("[Upload] File:", f.name, "type:", f.type, "ext:", ext, "size:", f.size, "validMime:", validMime, "validExt:", validExt)
         if (!validMime && !validExt) {
           toast.error(`"${f.name}" has an unsupported file type.`)
           continue
@@ -66,10 +62,6 @@ export default function UploadCard() {
           continue
         }
         valid.push(f)
-      }
-      console.warn("[Upload] valid files count:", valid.length)
-      if (valid.length === 0) {
-        console.warn("[Upload] No valid files to add")
       }
       setFiles((prev) => [...prev, ...valid])
       setResults(null)
