@@ -3,29 +3,12 @@ import { useNavigate } from "react-router-dom"
 import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getBills, uploadMultipleBills } from "@/api/bills"
+import { uploadMultipleBills } from "@/api/bills"
 import { toast } from "sonner"
-import type { Bill, UploadResult } from "@/types"
+import type { UploadResult } from "@/types"
 
 const ACCEPTED_TYPES = ["application/pdf"]
 const ALLOWED_EXTENSIONS = [".pdf"]
-
-function nameFromFilename(name: string): string {
-  return name
-    .replace(/\.\w+$/, "")
-    .replace(/[_-]/g, " ")
-    .trim()
-    .toLowerCase()
-}
-
-function isDuplicate(file: File, existingBills: Bill[]): boolean {
-  const slug = nameFromFilename(file.name)
-  return existingBills.some((b) => {
-    if (!b.customer_name) return false
-    const cust = b.customer_name.toLowerCase().replace(/\n.*/, "").trim()
-    return cust === slug || cust.includes(slug) || slug.includes(cust)
-  })
-}
 
 export default function UploadCard() {
   const navigate = useNavigate()
@@ -43,11 +26,6 @@ export default function UploadCard() {
   const addFiles = useCallback(async (incoming: FileList | File[]) => {
     try {
       const files = Array.from(incoming)
-      let existing: Bill[] = []
-      try {
-        existing = await getBills()
-      } catch { /* ignore */ }
-
       const valid: File[] = []
       for (const f of files) {
         const ext = "." + f.name.split(".").pop()?.toLowerCase()
@@ -55,10 +33,6 @@ export default function UploadCard() {
         const validExt = ALLOWED_EXTENSIONS.includes(ext)
         if (!validMime && !validExt) {
           toast.error(`"${f.name}" has an unsupported file type.`)
-          continue
-        }
-        if (isDuplicate(f, existing)) {
-          toast.warning(`"${f.name}" appears to be a duplicate — skipped.`)
           continue
         }
         valid.push(f)
@@ -192,9 +166,7 @@ export default function UploadCard() {
                           <div className="group relative shrink-0">
                             <AlertCircle className="h-5 w-5 text-red-500" />
                             <span className="absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded bg-red-500 px-2 py-1 text-xs text-white group-hover:block">
-                              {r.error?.includes("already exists")
-                                ? "Duplicate invoice - already in system"
-                                : r.error}
+                              {r.error}
                             </span>
                           </div>
                         )
@@ -235,11 +207,6 @@ export default function UploadCard() {
                     {results.filter((r) => r.status === "success").length} succeeded,{" "}
                     {results.filter((r) => r.status === "failed").length} failed
                   </p>
-                  {results.some((r) => r.error?.includes("already exists")) && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      Some invoices already exist in the system — duplicates were skipped.
-                    </p>
-                  )}
                   {results.every((r) => r.status === "success") && (
                     <p className="text-xs text-muted-foreground mt-1">Redirecting to bills...</p>
                   )}
