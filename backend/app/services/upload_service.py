@@ -48,26 +48,6 @@ def save_upload(
             f"Invoice parsed: {parsed_data.get('invoice_number')}"
         )
 
-        # Duplicate invoice check
-        if BillService.invoice_exists(
-            db,
-            parsed_data["invoice_number"],
-        ):
-            logger.warning(
-                f"Duplicate invoice detected: {parsed_data['invoice_number']}"
-            )
-
-            if destination.exists():
-                destination.unlink()
-                logger.info(
-                    f"Duplicate file removed: {destination}"
-                )
-
-            raise HTTPException(
-                status_code=409,
-                detail=f"Invoice '{parsed_data['invoice_number']}' already exists.",
-            )
-
         # Save to database
         bill = BillService.create_bill(
             db,
