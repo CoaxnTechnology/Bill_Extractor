@@ -41,32 +41,42 @@ export default function UploadCard() {
   }, [])
 
   const addFiles = useCallback(async (incoming: FileList | File[]) => {
-    let existing: Bill[] = []
     try {
-      existing = await getBills()
-    } catch { /* ignore */ }
+      console.warn("[Upload] addFiles called, incoming type:", typeof incoming, "length:", incoming?.length)
+      let existing: Bill[] = []
+      try {
+        existing = await getBills()
+      } catch (e) {
+        console.warn("[Upload] getBills failed:", e)
+      }
 
-    const valid: File[] = []
-    for (const f of incoming) {
-      const ext = "." + f.name.split(".").pop()?.toLowerCase()
-      const validMime = ACCEPTED_TYPES.includes(f.type)
-      const validExt = ALLOWED_EXTENSIONS.includes(ext)
-      console.warn("[Upload] File:", f.name, "type:", f.type, "ext:", ext, "size:", f.size, "validMime:", validMime, "validExt:", validExt)
-      if (!validMime && !validExt) {
-        toast.error(`"${f.name}" has an unsupported file type.`)
-        continue
+      const valid: File[] = []
+      console.warn("[Upload] incoming length:", incoming?.length)
+      for (const f of incoming) {
+        const ext = "." + f.name.split(".").pop()?.toLowerCase()
+        const validMime = ACCEPTED_TYPES.includes(f.type)
+        const validExt = ALLOWED_EXTENSIONS.includes(ext)
+        console.warn("[Upload] File:", f.name, "type:", f.type, "ext:", ext, "size:", f.size, "validMime:", validMime, "validExt:", validExt)
+        if (!validMime && !validExt) {
+          toast.error(`"${f.name}" has an unsupported file type.`)
+          continue
+        }
+        if (isDuplicate(f, existing)) {
+          toast.warning(`"${f.name}" appears to be a duplicate — skipped.`)
+          continue
+        }
+        valid.push(f)
       }
-      if (isDuplicate(f, existing)) {
-        toast.warning(`"${f.name}" appears to be a duplicate — skipped.`)
-        continue
+      console.warn("[Upload] valid files count:", valid.length)
+      if (valid.length === 0) {
+        console.warn("[Upload] No valid files to add")
       }
-      valid.push(f)
+      setFiles((prev) => [...prev, ...valid])
+      setResults(null)
+    } catch (e) {
+      console.error("[Upload] CRASH:", e)
+      toast.error("Something went wrong while processing the file.")
     }
-    if (valid.length === 0) {
-      console.warn("[Upload] No valid files to add")
-    }
-    setFiles((prev) => [...prev, ...valid])
-    setResults(null)
   }, [])
 
   const removeFile = useCallback((index: number) => {
